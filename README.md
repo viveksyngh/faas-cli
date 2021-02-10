@@ -87,6 +87,8 @@ The main commands supported by the CLI are:
 
 * `faas-cli auth` - (alpha) initiates an OAuth2 authorization flow to obtain a cookie
 
+* `faas-cli registry-login` - generate registry auth file in correct format by providing username and password for docker/ecr/self hosted registry
+
 The default gateway URL of `127.0.0.1:8080` can be overridden in three places including an environmental variable.
 
 * 1st priority `--gateway` flag
@@ -242,15 +244,27 @@ Specify `lang: Dockerfile` if you want the faas-cli to execute a build or `skip_
 
 Read the blog post/tutorial: [Turn Any CLI into a Function with OpenFaaS](https://blog.alexellis.io/cli-functions-with-openfaas/)
 
+#### `faas-cli registry-login`
+This command allows to generate the registry auth file in the correct format in the location `./credentials/config.json`
+#### Prepare your Docker registry (if not using AWS ECR)
+If you are using Dockerhub you only need to supply your --username and --password-stdin (or --password, but this leaves the password in history).
+```
+faas-cli registry-login --username <your-registry-username> --password-stdin
+(then enter your password and use ctrl+d to finish input)
+```
+You could also have you password in a file, or environment variable and echo/cat this instead of entering interactively
+If you are using a different registry (that is not ECR) then also provide a `--server` as well.
+
+#### Prepare your Docker registry (if using AWS ECR)
+```
+faas-cli registry-login --ecr --region <your-aws-region> --account-id <your-account-id>
+```
+
 ### Private registries
 
 * For Kubernetes - [see here](https://docs.openfaas.com/deployment/kubernetes/#use-a-private-registry-with-kubernetes)
 
 * For faasd - [see here](https://github.com/openfaas/faasd)
-
-* For Docker Swarm
-
-For Docker Swarm use the `--send-registry-auth` flag or its shorthand `-a` which will look up your registry credentials in your local credentials store and then transmit them over the wire to the deploy command on the API Gateway. Make sure HTTPS/TLS is enabled before attempting this.
 
 ### Use faas-cli in CI environments
 
