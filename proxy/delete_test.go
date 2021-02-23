@@ -21,13 +21,10 @@ func Test_DeleteFunction(t *testing.T) {
 	cliAuth := NewTestAuth(nil)
 	proxyClient, _ := NewClient(cliAuth, s.URL, nil, &defaultCommandTimeout)
 
-	stdout := test.CaptureStdout(func() {
-		proxyClient.DeleteFunction(context.Background(), "function-to-delete", "")
-	})
+	err := proxyClient.DeleteFunction(context.Background(), "function-to-delete", "")
 
-	r := regexp.MustCompile(`(?m:Removing old function.)`)
-	if !r.MatchString(stdout) {
-		t.Fatalf("Want: %s, got: %s", "Removing old function", stdout)
+	if err != nil {
+		t.Fatalf("Got error: %s", err.Error())
 	}
 }
 

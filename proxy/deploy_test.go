@@ -6,10 +6,9 @@ package proxy
 import (
 	"context"
 	"net/http"
+	"regexp"
 
 	"testing"
-
-	"regexp"
 
 	"github.com/openfaas/faas-cli/test"
 )
@@ -22,6 +21,7 @@ type deployProxyTest struct {
 	replace             bool
 	update              bool
 	expectedOutput      string
+	expectedStatus      int
 }
 
 func runDeployProxyTest(t *testing.T, deployTest deployProxyTest) {
@@ -34,32 +34,34 @@ func runDeployProxyTest(t *testing.T, deployTest deployProxyTest) {
 	cliAuth := NewTestAuth(nil)
 	proxyClient, _ := NewClient(cliAuth, s.URL, nil, &defaultCommandTimeout)
 
-	stdout := test.CaptureStdout(func() {
-		proxyClient.DeployFunction(context.TODO(), &DeployFunctionSpec{
-			"fprocess",
-			"function",
-			"image",
-			"dXNlcjpwYXNzd29yZA==",
-			"language",
-			deployTest.replace,
-			nil,
-			"network",
-			[]string{},
-			deployTest.update,
-			[]string{},
-			map[string]string{},
-			map[string]string{},
-			FunctionResourceRequest{},
-			false,
-			tlsNoVerify,
-			"",
-			"",
-		})
+	statusCode, deployOutputStr := proxyClient.DeployFunction(context.TODO(), &DeployFunctionSpec{
+		"fprocess",
+		"function",
+		"image",
+		"dXNlcjpwYXNzd29yZA==",
+		"language",
+		deployTest.replace,
+		nil,
+		"network",
+		[]string{},
+		deployTest.update,
+		[]string{},
+		map[string]string{},
+		map[string]string{},
+		FunctionResourceRequest{},
+		false,
+		tlsNoVerify,
+		"",
+		"",
 	})
 
+	if statusCode != deployTest.expectedStatus {
+		t.Fatalf("Got: %d, expected: %d", statusCode, deployTest.expectedStatus)
+	}
+
 	r := regexp.MustCompile(deployTest.expectedOutput)
-	if !r.MatchString(stdout) {
-		t.Fatalf("Output not matched: %s", stdout)
+	if !r.MatchString(deployOutputStr) {
+		t.Fatalf("Output not matched: %s", deployOutputStr)
 	}
 }
 
@@ -71,6 +73,7 @@ func Test_RunDeployProxyTests(t *testing.T) {
 			replace:             true,
 			update:              false,
 			expectedOutput:      `(?m:Deployed)`,
+			expectedStatus:      http.StatusOK,
 		},
 		{
 			title:               "404_Deploy",
@@ -78,6 +81,7 @@ func Test_RunDeployProxyTests(t *testing.T) {
 			replace:             true,
 			update:              false,
 			expectedOutput:      `(?m:Unexpected status: 404)`,
+			expectedStatus:      http.StatusNotFound,
 		},
 		{
 			title:               "UpdateFailedDeployed",
@@ -85,6 +89,7 @@ func Test_RunDeployProxyTests(t *testing.T) {
 			replace:             false,
 			update:              true,
 			expectedOutput:      `(?m:Deployed)`,
+			expectedStatus:      http.StatusOK,
 		},
 	}
 	for _, tst := range deployProxyTests {

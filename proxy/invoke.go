@@ -5,7 +5,6 @@ package proxy
 
 import (
 	"bytes"
-	"os"
 
 	"fmt"
 	"io/ioutil"
@@ -53,8 +52,6 @@ func InvokeFunction(gateway string, name string, bytesIn *[]byte, contentType st
 
 	req, err := http.NewRequest(httpMethod, gatewayURL, reader)
 	if err != nil {
-		fmt.Println()
-		fmt.Println(err)
 		return nil, fmt.Errorf("cannot connect to OpenFaaS on URL: %s", gateway)
 	}
 
@@ -71,8 +68,6 @@ func InvokeFunction(gateway string, name string, bytesIn *[]byte, contentType st
 	res, err := client.Do(req)
 
 	if err != nil {
-		fmt.Println()
-		fmt.Println(err)
 		return nil, fmt.Errorf("cannot connect to OpenFaaS on URL: %s", gateway)
 	}
 
@@ -82,7 +77,6 @@ func InvokeFunction(gateway string, name string, bytesIn *[]byte, contentType st
 
 	switch res.StatusCode {
 	case http.StatusAccepted:
-		fmt.Fprintf(os.Stderr, "Function submitted asynchronously.\n")
 	case http.StatusOK:
 		var readErr error
 		resBytes, readErr = ioutil.ReadAll(res.Body)

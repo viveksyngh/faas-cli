@@ -59,21 +59,15 @@ func generateFuncStr(spec *DeployFunctionSpec) string {
 
 // DeployFunction first tries to deploy a function and if it exists will then attempt
 // a rolling update. Warnings are suppressed for the second API call (if required.)
-func (c *Client) DeployFunction(context context.Context, spec *DeployFunctionSpec) int {
+func (c *Client) DeployFunction(context context.Context, spec *DeployFunctionSpec) (int, string) {
 
-	rollingUpdateInfo := fmt.Sprintf("Function %s already exists, attempting rolling-update.", spec.FunctionName)
 	statusCode, deployOutput := c.deploy(context, spec, spec.Update)
 
 	if spec.Update == true && statusCode == http.StatusNotFound {
 		// Re-run the function with update=false
-
 		statusCode, deployOutput = c.deploy(context, spec, false)
-	} else if statusCode == http.StatusOK {
-		fmt.Println(rollingUpdateInfo)
 	}
-	fmt.Println()
-	fmt.Println(deployOutput)
-	return statusCode
+	return statusCode, deployOutput
 }
 
 // deploy a function to an OpenFaaS gateway over REST

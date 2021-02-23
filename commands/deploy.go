@@ -276,7 +276,9 @@ Error: %s`, fprocessErr.Error())
 			if msg := checkTLSInsecure(services.Provider.GatewayURL, deploySpec.TLSInsecure); len(msg) > 0 {
 				fmt.Println(msg)
 			}
-			statusCode := proxyClient.DeployFunction(ctx, deploySpec)
+			statusCode, deployOutputStr := proxyClient.DeployFunction(ctx, deploySpec)
+			fmt.Println()
+			fmt.Println(deployOutputStr)
 			if badStatusCode(statusCode) {
 				failedStatusCodes[k] = statusCode
 			}
@@ -375,8 +377,9 @@ func deployImage(
 		fmt.Println(msg)
 	}
 
-	statusCode = client.DeployFunction(ctx, deploySpec)
-
+	statusCode, deployOutputStr := client.DeployFunction(ctx, deploySpec)
+	fmt.Println()
+	fmt.Println(deployOutputStr)
 	return statusCode, nil
 }
 

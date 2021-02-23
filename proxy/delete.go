@@ -30,14 +30,12 @@ func (c *Client) DeleteFunction(ctx context.Context, functionName string, namesp
 
 	req, err := c.newRequest(http.MethodDelete, deleteEndpoint, reader)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	delRes, delErr := c.doRequest(ctx, req)
 
 	if delErr != nil {
-		fmt.Printf("Error removing existing function: %s, gateway=%s, functionName=%s\n", delErr.Error(), c.GatewayURL.String(), functionName)
-		return delErr
+		return fmt.Errorf("error removing existing function: %s, gateway=%s, functionName=%s", delErr.Error(), c.GatewayURL.String(), functionName)
 	}
 
 	if delRes.Body != nil {
@@ -46,7 +44,6 @@ func (c *Client) DeleteFunction(ctx context.Context, functionName string, namesp
 
 	switch delRes.StatusCode {
 	case http.StatusOK, http.StatusCreated, http.StatusAccepted:
-		fmt.Println("Removing old function.")
 	case http.StatusNotFound:
 		err = fmt.Errorf("No existing function to remove")
 	case http.StatusUnauthorized:
